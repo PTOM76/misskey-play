@@ -1,1 +1,1 @@
-# misskey-play
+Misskey.ioのPlayスクリプト置き場
