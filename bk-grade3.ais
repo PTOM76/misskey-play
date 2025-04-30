@@ -1,0 +1,214 @@
+/// @ 0.18.0
+let title = '簿記3級クイズ'
+
+let data = [
+	{
+		q: '資産の増加はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '借方',
+		description: '資産が増えたら借方に記入します。「資産」と「費用」の増加は借方で覚えましょう。'
+	},
+	{
+		q: '費用の増加はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '借方',
+		description: '費用が増えたら借方に記入します。「資産」と「費用」の増加は借方で覚えましょう。'
+	},
+	{
+		q: '負債の増加はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '貸方',
+		description: '負債が増えたら貸方に記入します。「負債」と「純資産」、「収益」の増加は貸方で覚えましょう。'
+	},
+	{
+		q: '純資産の増加はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '貸方',
+		description: '純資産(資本)が増えたら貸方に記入します。「負債」と「純資産」、「収益」の増加は貸方で覚えましょう。'
+	},
+	{
+		q: '収益の増加はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '貸方',
+		description: '収益が増えたら貸方に記入します。「負債」と「純資産」、「収益」の増加は貸方で覚えましょう。'
+	},
+	{
+		q: '資産の減少はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '貸方',
+		description: '資産が減ったら貸方に記入します。「資産」と「費用」の減少は貸方で覚えましょう。'
+	},
+	{
+		q: '費用の減少はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '貸方',
+		description: '費用が減ったら貸方に記入します。「資産」と「費用」の減少は貸方で覚えましょう。'
+	},
+	{
+		q: '負債の減少はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '借方',
+		description: '負債が減ったら借方に記入します。「負債」と「純資産」、「収益」の減少は借方で覚えましょう。'
+	},
+	{
+		q: '純資産の減少はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '借方',
+		description: '純資産(資本)が減ったら借方に記入します。「負債」と「純資産」、「収益」の減少は借方で覚えましょう。'
+	},
+	{
+		q: '収益の減少はどちらに記入しますか？',
+		detail: ``,
+		choices: ['借方', '貸方'],
+		a: '借方',
+		description: '収益が減ったら借方に記入します。「負債」と「純資産」、「収益」の減少は借方で覚えましょう。'
+	},
+	{
+		q: `下記の取引について仕訳しなさい`,
+		detail: `
+		商品500円を仕入れ、代金は現金で支払った
+		
+		ア. 左側（借方）に代金 200円、右側（貸方）に仕入 300円
+		イ. 左側（借方）に仕入 500円、右側（貸方）に代金 500円
+		ウ. 左側（借方）に仕入 300円、右側（貸方）に代金 200円
+		エ. 左側（借方）に代金 500円、右側（貸方）に仕入 500円
+		`,
+		choices: ['ア', 'イ', 'ウ', 'エ'],
+		a: 'イ',
+		description: '借方と貸方の金額は等しくなるように記入します。また、仕入は費用ですから借方に仕訳けます。'
+	}
+]
+
+var question = data[0]
+var qn = 0
+
+var indexlist = Core:range(0, (data.len - 1))
+var qaEls = []
+var isAnswered = false
+
+@quest() {
+	isAnswered = false
+	if (indexlist.len <= 0) {
+		result()
+		return false
+	}
+
+	// シードが「PlayID+ユーザーID+今日の日付」である乱数生成器を用意
+	let rand = Math:gen_rng(`{THIS_ID}{USER_ID}{Date:year()}{Date:month()}{Date:day()}{Date:now()}`)
+
+	// ランダムに選択肢を選ぶ
+	let r = rand(0, (indexlist.len - 1))
+	question = data[indexlist[r]]
+	indexlist.remove(r)
+	qn += 1
+	
+	question.id = Util:uuid()
+	
+	let ansbtns = []
+	
+	each (let choice, question.choices) {
+		ansbtns.push({
+			text: choice
+			primary: true
+			rounded: false
+			onClick: @(v) {
+				question.ans = choice
+				answer()
+			}
+		})
+	}
+	
+	qaEls = [
+		Ui:C:container({
+			align: 'left'
+			children: [
+				Ui:C:text({
+					size: 1.5
+					bold: true
+					text: title
+				})
+			]
+		}),
+		Ui:C:container({
+			align: 'left',
+			bgColor: '#000',
+			fgColor: '#fff',
+			padding: 16,
+			rounded: true,
+			children: [
+				Ui:C:mfm({
+					text: `Q.{qn} {question.q} ({qn }/{data.len}) {question.detail}`
+				}),
+				Ui:C:buttons({
+					buttons: ansbtns
+				}),
+				Ui:C:container({
+					children: []
+				}, `{question.id}:a`)
+			]
+		}, question.id)
+	]
+	
+	Ui:render(qaEls)
+}
+
+var score = 0
+@answer() {
+	let isCorrect = question.ans == question.a
+	if (isCorrect && !isAnswered) score += 1
+	isAnswered = true
+	
+	let ansEle = Ui:get(`{question.id}:a`)
+	ansEle.update({
+		children: [
+			Ui:C:text({
+				size: 1.2,
+				bold: true,
+				color: if (isCorrect) '#f00' else '#00f',
+				text: if (isCorrect) '正解⭕' else '不正解❌'
+			}),
+			Ui:C:mfm({
+				text: `正解は{question.a} (あなたの回答：{question.ans}){Str:lf}
+解説: {question.description}`
+			}),
+			Ui:C:button({
+				text: if (indexlist.len > 0) `次へ` else `結果`,
+				primary: true,
+				rounded: true,
+				onClick: @(v) {
+					quest()
+				}
+			})
+		]
+	})
+}
+
+@result() {
+	let resultText = `{title}の結果は {data.len}問中{score}問 が正解でした。`
+	qaEls = [
+		Ui:C:container({
+			align: 'center',
+			children: [
+				Ui:C:text({ text: resultText }),
+				Ui:C:postFormButton({
+					text: '結果を共有',
+					rounded: true,
+					primary: true,
+					form: { text: `{resultText}{Str:lf}{THIS_URL}` }
+				})
+			]
+		})
+	]
+	Ui:render(qaEls)
+}
+
+quest()
